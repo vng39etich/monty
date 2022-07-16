@@ -1,46 +1,83 @@
-#include "monty.h"
-int ERROR_MANAGE = 0;
+#ifndef _MONTY_H_
+#define _MONTY_H_
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 /**
- * main - is the main functioj
- * @argc: int of how many arguments
- * @argv: is the arguments passed into the file
- *
- * Return: if fails throught errors
+ * struct var_s - struct to contain the main variables of the Monty interpreter
+ * @queue: flag to determine if in stack vs queue mode
+ * @stack_len: length of the stack
  */
-int main(int argc, char *argv[])
+typedef struct var_s
 {
-	size_t size = 0;
-	FILE *monty_file;
-	char *buffer = NULL;
-	int lines = 1;
-	stack_t *stack = NULL;
-	instruction_t instruct[] = {{"push", push}, {"pall", pall},
-				    {"nop", nop}, {"pop", pop}, {"pint", pint}, {"swap", NULL},
-				    {"add", add}, {"sub", sub}, {"div", NULL}, {NULL, NULL}};
-	if (argc != 2)
-	{
-		fprintf(stderr, "USAGE: monty file\n");
-		exit(EXIT_FAILURE);
-	}
-	monty_file = fopen(argv[1], "r");
-	if (monty_file == NULL)
-	{
-		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-		exit(EXIT_FAILURE);
-	}
-	while (getline(&buffer, &size, monty_file) > 0)
-	{
-		if (excute(&stack, lines, buffer, instruct, monty_file) == 1)
-		{
-			free(buffer);
-			free_dlist(stack);
-			fclose(monty_file);
-			exit(EXIT_FAILURE);
-		}
-		lines++;
-	}
-	free(buffer);
-	free_dlist(stack);
-	fclose(monty_file);
-	return (0);
-}
+	int queue;
+	size_t stack_len;
+} var_t;
+
+#define STACK 0
+#define QUEUE 1
+
+/* global struct to hold flag for queue and stack length */
+extern var_t var;
+
+/**
+ * struct stack_s - doubly linked list representation of a stack (or queue)
+ * @n: integer
+ * @prev: points to the previous element of the stack (or queue)
+ * @next: points to the next element of the stack (or queue)
+ *
+ * Description: doubly linked list node structure
+ * for stack, queues, LIFO, FIFO Holberton project
+ */
+typedef struct stack_s
+{
+	int n;
+	struct stack_s *prev;
+	struct stack_s *next;
+} stack_t;
+
+/**
+ * struct instruction_s - opcoode and its function
+ * @opcode: the opcode
+ * @f: function to handle the opcode
+ *
+ * Description: opcode and its function
+ * for stack, queues, LIFO, FIFO Holberton project
+ */
+typedef struct instruction_s
+{
+	char *opcode;
+	void (*f)(stack_t **stack, unsigned int line_number);
+} instruction_t;
+
+void get_op(char *op, stack_t **stack, unsigned int line_number);
+void m_push(stack_t **stack, unsigned int line_number);
+void m_push2(stack_t **stack, int n);
+void m_pall(stack_t **stack, unsigned int line_number);
+void m_pint(stack_t **stack, unsigned int line_number);
+void m_pop(stack_t **stack, unsigned int line_number);
+void m_swap(stack_t **stack, unsigned int line_number);
+void m_add(stack_t **stack, unsigned int line_number);
+void m_nop(stack_t **stack, unsigned int line_number);
+void m_sub(stack_t **stack, unsigned int line_number);
+void m_mul(stack_t **stack, unsigned int line_number);
+void m_div(stack_t **stack, unsigned int line_number);
+void m_mod(stack_t **stack, unsigned int line_number);
+void rotl(stack_t **stack, unsigned int line_number);
+void rotr(stack_t **stack, unsigned int line_number);
+void m_stack(stack_t **stack, unsigned int line_number);
+void m_queue(stack_t **stack, unsigned int line_number);
+void m_pchar(stack_t **stack, unsigned int line_number);
+void m_pstr(stack_t **stack, unsigned int line_number);
+void free_stack(int status, void *arg);
+void m_fs_close(int status, void *arg);
+void free_lineptr(int status, void *arg);
+stack_t *add_node(stack_t **stack, const int n);
+
+#endif
